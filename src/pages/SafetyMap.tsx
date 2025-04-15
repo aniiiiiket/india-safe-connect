@@ -1,52 +1,79 @@
 
 import MainLayout from '@/components/layout/MainLayout';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
-import { MapPin, Filter, Download } from 'lucide-react';
+import { Filter, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-// Need to import leaflet for marker icons to work correctly
+// Import Leaflet directly
 import L from 'leaflet';
-
-// Fix the leaflet icon issue
-const fixLeafletIcon = () => {
-  // Fix the default icon paths that are broken in production build
-  delete L.Icon.Default.prototype._getIconUrl;
-  
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  });
-};
 
 // Example data for safety zones
 const safetyMarkers = [
   { 
     position: [28.6139, 77.2090],
     name: "Delhi",
-    riskLevel: "Moderate Risk Area" 
+    riskLevel: "Moderate Risk Area",
+    riskColor: "yellow" 
   },
   { 
     position: [19.0760, 72.8777],
     name: "Mumbai",
-    riskLevel: "Safe Zone" 
+    riskLevel: "Safe Zone",
+    riskColor: "green" 
   },
   { 
     position: [13.0827, 80.2707],
     name: "Chennai",
-    riskLevel: "High Risk Area" 
+    riskLevel: "High Risk Area",
+    riskColor: "red" 
   },
 ];
 
 const SafetyMap = () => {
-  // Center position for India
-  const defaultPosition = [20.5937, 78.9629];
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
   
   useEffect(() => {
-    fixLeafletIcon();
+    if (mapRef.current && !mapInstanceRef.current) {
+      // Fix the default icon issue
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      });
+
+      // Create map instance
+      const map = L.map(mapRef.current).setView([20.5937, 78.9629], 5);
+      
+      // Add tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      // Add markers
+      safetyMarkers.forEach(marker => {
+        const { position, name, riskLevel, riskColor } = marker;
+        
+        L.marker(position as L.LatLngExpression)
+          .addTo(map)
+          .bindPopup(`<b>${name}</b><br>${riskLevel}`)
+          .openPopup();
+      });
+      
+      // Store map instance in ref
+      mapInstanceRef.current = map;
+    }
+    
+    // Cleanup map on unmount
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, []);
 
   return (
@@ -87,29 +114,9 @@ const SafetyMap = () => {
             </div>
           </Card>
 
-          {/* Map container */}
+          {/* Map container using direct ref approach instead of react-leaflet */}
           <div className="h-full w-full">
-            <MapContainer 
-              className="h-full w-full"
-              defaultCenter={defaultPosition as L.LatLngExpression}
-              defaultZoom={5}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              
-              {/* Map markers */}
-              {safetyMarkers.map((marker, index) => (
-                <Marker 
-                  key={index} 
-                  position={marker.position as L.LatLngExpression}
-                >
-                  <Popup>
-                    {marker.name} - {marker.riskLevel}
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
+            <div ref={mapRef} className="h-full w-full"></div>
           </div>
         </div>
       </div>
