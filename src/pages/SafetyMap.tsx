@@ -24,8 +24,8 @@ const fixLeafletIcon = () => {
 
 const SafetyMap = () => {
   // Define center position for India
-  const [mapCenter] = useState<[number, number]>([20.5937, 78.9629]);
-  const [mapZoom] = useState<number>(5);
+  const position: [number, number] = [20.5937, 78.9629];
+  const zoom = 5;
   
   useEffect(() => {
     fixLeafletIcon();
@@ -72,9 +72,9 @@ const SafetyMap = () => {
           {/* Map container */}
           <div className="h-full w-full">
             <MapContainer 
+              center={position} 
+              zoom={zoom} 
               className="h-full w-full"
-              center={mapCenter}
-              zoom={mapZoom}
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
