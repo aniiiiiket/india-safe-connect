@@ -5,12 +5,12 @@ import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { MapPin, Filter, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 // Need to import leaflet for marker icons to work correctly
 import L from 'leaflet';
 
-// Fix the marker icon issue
+// Fix the leaflet icon issue
 const fixLeafletIcon = () => {
   // Fix the default icon paths that are broken in production build
   delete L.Icon.Default.prototype._getIconUrl;
@@ -22,10 +22,28 @@ const fixLeafletIcon = () => {
   });
 };
 
+// Example data for safety zones
+const safetyMarkers = [
+  { 
+    position: [28.6139, 77.2090],
+    name: "Delhi",
+    riskLevel: "Moderate Risk Area" 
+  },
+  { 
+    position: [19.0760, 72.8777],
+    name: "Mumbai",
+    riskLevel: "Safe Zone" 
+  },
+  { 
+    position: [13.0827, 80.2707],
+    name: "Chennai",
+    riskLevel: "High Risk Area" 
+  },
+];
+
 const SafetyMap = () => {
-  // Define center position for India
-  const position: [number, number] = [20.5937, 78.9629];
-  const zoom = 5;
+  // Center position for India
+  const defaultPosition = [20.5937, 78.9629];
   
   useEffect(() => {
     fixLeafletIcon();
@@ -72,29 +90,25 @@ const SafetyMap = () => {
           {/* Map container */}
           <div className="h-full w-full">
             <MapContainer 
-              center={position} 
-              zoom={zoom} 
               className="h-full w-full"
+              defaultCenter={defaultPosition as L.LatLngExpression}
+              defaultZoom={5}
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              {/* Example markers for different safety zones */}
-              <Marker position={[28.6139, 77.2090]}>
-                <Popup>
-                  Delhi - Moderate Risk Area
-                </Popup>
-              </Marker>
-              <Marker position={[19.0760, 72.8777]}>
-                <Popup>
-                  Mumbai - Safe Zone
-                </Popup>
-              </Marker>
-              <Marker position={[13.0827, 80.2707]}>
-                <Popup>
-                  Chennai - High Risk Area
-                </Popup>
-              </Marker>
+              
+              {/* Map markers */}
+              {safetyMarkers.map((marker, index) => (
+                <Marker 
+                  key={index} 
+                  position={marker.position as L.LatLngExpression}
+                >
+                  <Popup>
+                    {marker.name} - {marker.riskLevel}
+                  </Popup>
+                </Marker>
+              ))}
             </MapContainer>
           </div>
         </div>
