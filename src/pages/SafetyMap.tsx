@@ -1,12 +1,32 @@
 
 import MainLayout from '@/components/layout/MainLayout';
-import { Map, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { MapPin, Filter, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useEffect } from 'react';
+
+// Need to import leaflet for marker icons to work correctly
+import L from 'leaflet';
+
+// Fix the marker icon issue
+const fixLeafletIcon = () => {
+  // Fix the default icon paths that are broken in production build
+  delete L.Icon.Default.prototype._getIconUrl;
+  
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  });
+};
 
 const SafetyMap = () => {
+  useEffect(() => {
+    fixLeafletIcon();
+  }, []);
+
   return (
     <MainLayout>
       <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -47,12 +67,28 @@ const SafetyMap = () => {
 
           {/* Map container */}
           <div className="h-full w-full">
-            <Map center={[20.5937, 78.9629]} zoom={5} className="h-full w-full">
+            <MapContainer center={[20.5937, 78.9629]} zoom={5} className="h-full w-full">
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
-            </Map>
+              {/* Example markers for different safety zones */}
+              <Marker position={[28.6139, 77.2090]}>
+                <Popup>
+                  Delhi - Moderate Risk Area
+                </Popup>
+              </Marker>
+              <Marker position={[19.0760, 72.8777]}>
+                <Popup>
+                  Mumbai - Safe Zone
+                </Popup>
+              </Marker>
+              <Marker position={[13.0827, 80.2707]}>
+                <Popup>
+                  Chennai - High Risk Area
+                </Popup>
+              </Marker>
+            </MapContainer>
           </div>
         </div>
       </div>
