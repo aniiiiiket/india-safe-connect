@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { MapPin, Filter, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Need to import leaflet for marker icons to work correctly
 import L from 'leaflet';
@@ -23,6 +23,9 @@ const fixLeafletIcon = () => {
 };
 
 const SafetyMap = () => {
+  // Define center position state
+  const [center] = useState<L.LatLngExpression>([20.5937, 78.9629]);
+  
   useEffect(() => {
     fixLeafletIcon();
   }, []);
@@ -67,10 +70,13 @@ const SafetyMap = () => {
 
           {/* Map container */}
           <div className="h-full w-full">
-            <MapContainer center={[20.5937, 78.9629]} zoom={5} className="h-full w-full">
+            <MapContainer 
+              className="h-full w-full"
+              zoom={5} 
+              center={center}
+            >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
               {/* Example markers for different safety zones */}
               <Marker position={[28.6139, 77.2090]}>
